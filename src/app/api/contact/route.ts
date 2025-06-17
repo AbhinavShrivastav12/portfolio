@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
   try {
@@ -9,24 +8,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
-    // Create transporter (using environment variables for security)
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+    const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${SENDGRID_API_KEY}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        personalizations: [
+          {
+            to: [{ email: process.env.CONTACT_EMAIL }],
+            subject: `New message from ${name} (${email})`,
+          },
+        ],
+        from: { email: process.env.SMTP_USER },
+        content: [
+          {
+            type: 'text/plain',
+            value: message,
+          },
+          {
+            type: 'text/html',
+            value: `<p>${message}</p><p>From: ${name} - ${email}</p>`,
+          },
+        ],
+      }),
     });
 
-    await transporter.sendMail({
-      from: `"Portfolio Contact" <${process.env.SMTP_USER}>`,
-      to: process.env.CONTACT_EMAIL, // Your email where you want to receive messages
-      subject: `New message from ${name} (${email})`,
-      text: message,
-      html: `<p>${message}</p><p>From: ${name} - ${email}</p>`,
-    });
+    if (!response.ok) {
+      throw new Error(`SendGrid error: ${response.statusText}`);
+    }
 
     return NextResponse.json({ message: 'Email sent successfully' });
   } catch (error) {
