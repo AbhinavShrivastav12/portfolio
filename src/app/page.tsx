@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const techStack = [
@@ -38,9 +39,36 @@ const socials = [
 ];
 
 export default function HomePage() {
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setStatus('success');
+        setForm({ name: '', email: '', message: '' });
+      } else {
+        throw new Error('Failed to send');
+      }
+    } catch {
+      setStatus('error');
+    }
+  };
+
   return (
-    <div className="space-y-16">
-      {/* Intro Section */}
+    <div className="space-y-20">
+      {/* Intro */}
       <motion.section
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
@@ -55,6 +83,7 @@ export default function HomePage() {
 
       {/* Tech Stack */}
       <motion.section
+        id="tech"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6 }}
@@ -74,6 +103,7 @@ export default function HomePage() {
 
       {/* Projects */}
       <motion.section
+        id="projects"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.6 }}
@@ -100,22 +130,64 @@ export default function HomePage() {
 
       {/* Contact */}
       <motion.section
+        id="contact"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.6 }}
-        className="text-center"
+        className="text-center max-w-xl mx-auto"
       >
         <h2 className="text-3xl font-semibold mb-4">Get In Touch</h2>
-        <p className="mb-4">
-          Feel free to reach out via email or through social media!
-        </p>
-        <a
-          href="mailto:abhinav@example.com"
-          className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        <p className="mb-4">Feel free to reach out via email or through social media!</p>
+
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4 bg-white p-6 rounded-xl shadow-md"
         >
-          abhinav@example.com
-        </a>
-        <div className="mt-6 flex justify-center space-x-6 text-blue-600">
+          <input
+            type="text"
+            name="name"
+            placeholder="Your name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-blue-500"
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Your email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-blue-500"
+          />
+          <textarea
+            name="message"
+            placeholder="Your message"
+            value={form.message}
+            onChange={handleChange}
+            required
+            rows={5}
+            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-blue-500"
+          />
+
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {status === 'loading' ? 'Sending...' : 'Send Message'}
+          </button>
+
+          {status === 'success' && (
+            <p className="text-green-600 mt-2">Message sent! Thank you.</p>
+          )}
+          {status === 'error' && (
+            <p className="text-red-600 mt-2">Something went wrong. Please try again.</p>
+          )}
+        </form>
+
+        <div className="mt-8 flex justify-center space-x-8 text-blue-600">
           {socials.map(({ name, url }) => (
             <a
               key={name}

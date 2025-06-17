@@ -5,12 +5,13 @@ import { Inter } from 'next/font/google';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import Head from 'next/head';
+import Navbar from './component/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Developer Portfolio - Abhinav',
-  description: 'Portfolio showcasing tech stack, projects, and contact info.',
+  title: 'Abhinav - Developer Portfolio',
+  description: 'Portfolio showcasing tech stack, projects, and contact information.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,9 +23,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* Add more SEO tags like Open Graph if you want */}
+        {/* Open Graph tags */}
+        <meta property="og:title" content={metadata.title} />
+        <meta property="og:description" content={metadata.description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://yourdomain.com" />
+        <meta property="og:image" content="/og-image.png" />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={metadata.title} />
+        <meta name="twitter:description" content={metadata.description} />
+        <meta name="twitter:image" content="/og-image.png" />
       </Head>
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
+        <Navbar />
         <AnimatePresence mode="wait" initial={false}>
           <motion.main
             key={pathname}
